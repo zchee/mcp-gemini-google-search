@@ -30,7 +30,7 @@ jobs:
       - name: Install uv
         # setup-uv v8+ ships immutable releases without floating tags, so the
         # exact latest release is pinned; dependabot keeps it current.
-        uses: astral-sh/setup-uv@v8.3.2
+        uses: astral-sh/setup-uv@v9.0.0
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}

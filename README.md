@@ -48,9 +48,9 @@ Alternatively, install with `pip`:
 pip install --pre git+https://github.com/zchee/mcp-gemini-search
 ```
 
-### Bundled Codex plugin configuration
+### Bundled plugin MCP configuration
 
-The bundled Codex plugin exposes the authentication environment variables from the client process and uses:
+Both bundled plugins register the server from the same `.mcp.json` at the repository root:
 
 ```json
 {
@@ -63,13 +63,19 @@ The bundled Codex plugin exposes the authentication environment variables from t
         "git+https://github.com/zchee/mcp-gemini-search",
         "mcp-gemini-search"
       ],
+      "env": {
+        "MCP_GEMINI_GOOGLE_API_KEY": "${GOOGLE_API_KEY:-}",
+        "MCP_GEMINI_GEMINI_API_KEY": "${GEMINI_API_KEY:-}"
+      },
       "startup_timeout_sec": 60
     }
   }
 }
 ```
 
-The server itself also parses `$CODEX_HOME/.env` (default `~/.codex/.env`) at startup, so keys stored there are picked up automatically — see [Codex dotenv file](#codex-dotenv-file).
+The `env` block hands the host's `GOOGLE_API_KEY` or `GEMINI_API_KEY` to the server under its own `MCP_GEMINI_` namespace, so a long-lived API key configures the server without depending on a variable name other tools also read. `startup_timeout_sec` is a Codex-only field that Claude Code ignores.
+
+Codex CLI does not substitute `${VAR}` in an MCP `env` table — it passes the two entries through verbatim — and its default environment policy withholds the host's own `*_API_KEY` variables from the servers it spawns. The server therefore discards an unexpanded entry (see [Environment reference](#environment-reference)) and reads `$CODEX_HOME/.env` (default `~/.codex/.env`) instead, which is where Codex users should keep the key — see [Codex dotenv file](#codex-dotenv-file).
 
 ### Bundled Claude Code plugin
 
@@ -89,6 +95,8 @@ claude --plugin-dir .
 ```
 
 The plugin starts the server with `uvx` from this repository, so `uv` must be on `PATH`, and the environment variables from [Configuration](#configuration) must be exported in the shell that launches Claude Code.
+
+Claude Code substitutes both `${VAR}` and `${VAR:-default}` in `.mcp.json`, so exporting `GOOGLE_API_KEY` or `GEMINI_API_KEY` is all the `env` block above needs; an unset source variable expands to an empty string that the server discards rather than failing over. Export those two source names rather than their `MCP_GEMINI_` variants: an `env` entry replaces the inherited variable of the same name, so a shell-exported `MCP_GEMINI_GOOGLE_API_KEY` is overwritten by whatever `${GOOGLE_API_KEY:-}` expands to. Claude Code does not understand the VS Code spelling `${env:GOOGLE_API_KEY}` and would pass it through as literal text.
 
 On a cold `uv` cache the first launch clones and builds the package, which can exceed Claude Code's default MCP startup timeout (Claude Code ignores the Codex-only `startup_timeout_sec` field). If the server fails to start once, launch again — the build is cached — or raise the timeout with `MCP_TIMEOUT=60000 claude`.
 
@@ -118,7 +126,7 @@ If no model is configured, the server defaults to `gemini-3.1-pro-preview`.
 
 ### Codex dotenv file
 
-At startup the server parses `$CODEX_HOME/.env` — `~/.codex/.env` when `CODEX_HOME` is unset or blank — with [python-dotenv](https://github.com/theskumar/python-dotenv) and loads recognized entries into its own environment. Variables that are already exported always take precedence, and a missing file is a silent no-op. Codex CLI reads its dotenv file for itself but does not pass it to the MCP servers it spawns, so storing `GEMINI_API_KEY` there is enough for both Codex CLI and this server — no `env` table is needed in `config.toml`. If you relocate the directory via `CODEX_HOME`, make sure that variable also reaches the server — export it, or set it in the client's `env` configuration.
+At startup the server parses `$CODEX_HOME/.env` — `~/.codex/.env` when `CODEX_HOME` is unset or blank — with [python-dotenv](https://github.com/theskumar/python-dotenv) and loads recognized entries into its own environment. Variables already exported with a usable value always take precedence, and a missing file is a silent no-op. Codex CLI reads its dotenv file for itself but does not pass it to the MCP servers it spawns, so storing `GEMINI_API_KEY` there is enough for both Codex CLI and this server — no `env` table is needed in `config.toml`. If you relocate the directory via `CODEX_HOME`, make sure that variable also reaches the server — export it, or set it in the client's `env` configuration.
 
 ### Environment reference
 
@@ -139,6 +147,8 @@ At startup the server parses `$CODEX_HOME/.env` — `~/.codex/.env` when `CODEX_
 Every variable above is also recognized with an `MCP_GEMINI_` prefix — for example `MCP_GEMINI_GEMINI_API_KEY` or `MCP_GEMINI_GEMINI_MODEL`. A non-blank prefixed variable takes precedence over its unprefixed name, so this server can be configured independently of other tools that read the shared names. For the API keys, both prefixed keys take precedence over both unprefixed ones: `MCP_GEMINI_GOOGLE_API_KEY` > `MCP_GEMINI_GEMINI_API_KEY` > `GOOGLE_API_KEY` > `GEMINI_API_KEY`.
 
 Precedence resolves per name first, then per source. "Exported variables win" applies to the exact same name: an exported variable beats that name in the dotenv file. Across aliases the namespace always wins — an exported `GOOGLE_API_KEY` loses to an `MCP_GEMINI_GEMINI_API_KEY` set in the dotenv file. The effective order for every setting is `MCP_GEMINI_<NAME>` (exported > dotenv) before `<NAME>` (exported > dotenv).
+
+Before any of that is resolved, a recognized variable whose value is empty, whitespace only, or nothing but a single unexpanded client placeholder such as `${GOOGLE_API_KEY:-}` is removed from the environment. MCP clients disagree here — Claude Code substitutes `${VAR}` in `.mcp.json` and writes an empty string when the source variable is unset, while Codex CLI passes the text through unchanged — and both spellings mean "the host had nothing to give". Dropping them keeps a shared client config additive: a placeholder is never used as a literal API key, and an empty entry never shadows the same name in `$CODEX_HOME/.env`. The rule is deliberately narrow, so a value that merely contains braces, such as `AIza-${literal}-key`, is kept verbatim.
 
 The dotenv file is imported with least privilege: only the configuration names in the table above (and their `MCP_GEMINI_` variants) are read from `$CODEX_HOME/.env`. Every other entry is ignored, `${VAR}` interpolation is not applied, and exporting python-dotenv's `PYTHON_DOTENV_DISABLED=1` disables the import. `CODEX_HOME` and `MCP_GEMINI_CODEX_HOME` are loader inputs rather than importable settings — the path is resolved from the process environment before the file is parsed, so set them as exported variables or in the client's `env` configuration, never inside the dotenv file.
 

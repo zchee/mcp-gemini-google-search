@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -31,6 +32,7 @@ from mcp_gemini_search.config import (
     ENV_GOOGLE_API_KEY,
     ENV_GOOGLE_CLOUD_PROJECT,
     ENV_GOOGLE_GENAI_USE_VERTEXAI,
+    ENV_PREFIX,
 )
 from mcp_gemini_search.research import DeepResearchService
 from mcp_gemini_search.search import GoogleSearchService
@@ -124,4 +126,39 @@ def test_run_loads_client_dotenv_key(
         cli._run("")
 
     assert "parsed codex dotenv" in caplog.text
+    assert "dotenv-key" not in caplog.text
+
+
+def test_run_ignores_unexpanded_client_config_placeholder(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_environ: None,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A key entry the launching client never expanded must not outrank the Codex dotenv key.
+
+    Codex CLI passes an MCP ``env`` table through without substituting
+    ``${VAR}``, so the bundled `.mcp.json` reaches the server as literal text.
+    The environment is pruned before the dotenv file is imported, otherwise the
+    placeholder would both shadow the file and be used as the API key.
+    """
+    (tmp_path / ".env").write_text(f'{ENV_PREFIX}{ENV_GOOGLE_API_KEY}="dotenv-key"\n', encoding="utf-8")
+    monkeypatch.setenv(ENV_CODEX_HOME, str(tmp_path))
+    monkeypatch.setenv(ENV_PREFIX + ENV_GOOGLE_API_KEY, "${GOOGLE_API_KEY:-}")
+    monkeypatch.setenv(ENV_PREFIX + ENV_GEMINI_API_KEY, "${GEMINI_API_KEY:-}")
+    for key in (
+        ENV_GOOGLE_API_KEY,
+        ENV_GEMINI_API_KEY,
+        ENV_GOOGLE_CLOUD_PROJECT,
+        ENV_GOOGLE_GENAI_USE_VERTEXAI,
+    ):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(cli, "create_server", lambda service, research: object())
+    monkeypatch.setattr(cli.anyio, "run", lambda *args, **kwargs: None)
+
+    with caplog.at_level(logging.INFO, logger="mcp_gemini_search"):
+        cli._run("")
+
+    assert os.environ[ENV_PREFIX + ENV_GOOGLE_API_KEY] == "dotenv-key"
+    assert ENV_PREFIX + ENV_GEMINI_API_KEY not in os.environ
     assert "dotenv-key" not in caplog.text

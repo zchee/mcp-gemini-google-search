@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import os
+import re
 import stat
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -57,6 +58,12 @@ CONFIG_ENV_VARS = (
 """Unprefixed configuration names; each is also recognized under ``ENV_PREFIX``."""
 
 _CLIENT_IMPORT_VARS = frozenset(CONFIG_ENV_VARS) | {ENV_PREFIX + name for name in CONFIG_ENV_VARS}
+
+_CLIENT_ENV_VARS = _CLIENT_IMPORT_VARS | {ENV_CODEX_HOME, ENV_PREFIX + ENV_CODEX_HOME}
+"""Every name this server reads from the environment, importable or not."""
+
+_ENV_PLACEHOLDER = re.compile(r"\$\{[^{}]*\}")
+"""A client config entry left unexpanded, e.g. ``${GOOGLE_API_KEY:-}``."""
 
 DEFAULT_MODEL = "gemini-3.1-pro-preview"
 DEFAULT_LOCATION = "global"
@@ -160,6 +167,37 @@ def load_config_from_env(getenv: Callable[[str], str | None]) -> ServerConfig:
         deep_research_agent=deep_research_agent,
         service_tier=service_tier,
     )
+
+
+def prune_valueless_env() -> tuple[str, ...]:
+    """Drop recognized environment variables that carry no usable value.
+
+    An MCP client config shared by several clients maps host variables into
+    the server's environment, as in ``"MCP_GEMINI_GOOGLE_API_KEY":
+    "${GOOGLE_API_KEY:-}"``. Clients that expand ``${VAR}`` substitute an
+    empty string when the host variable is unset; Codex CLI does not expand at
+    all and passes the placeholder through verbatim. Both spellings are
+    absence dressed as a value: an empty string shadows the same name in
+    ``$CODEX_HOME/.env``, which is imported without overriding the process
+    environment, and an unexpanded placeholder would additionally be used as a
+    literal API key that outranks every real one. Removing them restores
+    "unset" semantics before anything reads the environment, which keeps such
+    a config additive on clients that cannot expand it.
+
+    Only the names in ``_CLIENT_ENV_VARS`` are considered, so unrelated empty
+    variables are left alone. Returns the removed names in sorted order.
+    """
+    removed = []
+    for name in sorted(_CLIENT_ENV_VARS):
+        value = os.environ.get(name)
+        if value is None:
+            continue
+        stripped = value.strip()
+        if stripped and not _ENV_PLACEHOLDER.fullmatch(stripped):
+            continue
+        del os.environ[name]
+        removed.append(name)
+    return tuple(removed)
 
 
 def load_codex_env() -> Path | None:

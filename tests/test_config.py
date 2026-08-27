@@ -40,6 +40,7 @@ from mcp_gemini_search.config import (
     _is_enabled,
     load_codex_env,
     load_config_from_env,
+    prune_valueless_env,
 )
 
 
@@ -699,3 +700,96 @@ def test_isolated_environ_scrubs_host_configuration(
 
     monkeypatch.setenv(ENV_GEMINI_API_KEY, "test-key")
     assert load_config_from_env(os.getenv) == ServerConfig(model=DEFAULT_MODEL, api_key="test-key")
+
+
+_UNEXPANDED_VALUES = (
+    "${GOOGLE_API_KEY}",
+    "${GOOGLE_API_KEY:-}",
+    "${GOOGLE_API_KEY:-fallback}",
+    "${env:GOOGLE_API_KEY}",
+    "  ${GOOGLE_API_KEY:-}  ",
+)
+
+
+@pytest.mark.parametrize("value", _UNEXPANDED_VALUES)
+def test_prune_valueless_env_drops_unexpanded_placeholders(
+    value: str,
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_environ: None,
+) -> None:
+    """A client config entry the launching client never expanded is treated as unset, not as a key."""
+    monkeypatch.setenv(ENV_PREFIX + ENV_GOOGLE_API_KEY, value)
+    monkeypatch.setenv(ENV_GEMINI_API_KEY, "real-key")
+
+    assert prune_valueless_env() == (ENV_PREFIX + ENV_GOOGLE_API_KEY,)
+    assert ENV_PREFIX + ENV_GOOGLE_API_KEY not in os.environ
+    assert load_config_from_env(os.environ.get) == ServerConfig(model=DEFAULT_MODEL, api_key="real-key")
+
+
+@pytest.mark.parametrize("value", ["", "   "], ids=["empty", "blank"])
+def test_prune_valueless_env_drops_empty_values(
+    value: str,
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_environ: None,
+) -> None:
+    """An entry a client expanded to nothing is removed rather than left to shadow later sources."""
+    monkeypatch.setenv(ENV_PREFIX + ENV_GOOGLE_API_KEY, value)
+    monkeypatch.setenv(ENV_GEMINI_API_KEY, "real-key")
+
+    assert prune_valueless_env() == (ENV_PREFIX + ENV_GOOGLE_API_KEY,)
+    assert ENV_PREFIX + ENV_GOOGLE_API_KEY not in os.environ
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["real-key", "AIza-${literal}-key", "${unterminated", "$GOOGLE_API_KEY", "/dev/null"],
+)
+def test_prune_valueless_env_keeps_usable_values(
+    value: str,
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_environ: None,
+) -> None:
+    """Only a value that is nothing but one placeholder is dropped; anything else is a real setting."""
+    monkeypatch.setenv(ENV_GOOGLE_API_KEY, value)
+
+    assert prune_valueless_env() == ()
+    assert os.environ[ENV_GOOGLE_API_KEY] == value
+
+
+def test_prune_valueless_env_drops_unexpanded_codex_home(
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_environ: None,
+) -> None:
+    """The dotenv home is pruned too, so a placeholder never becomes a literal directory name."""
+    monkeypatch.setenv(ENV_CODEX_HOME, "${CODEX_HOME:-}")
+
+    assert prune_valueless_env() == (ENV_CODEX_HOME,)
+    assert ENV_CODEX_HOME not in os.environ
+
+
+def test_prune_valueless_env_lets_codex_dotenv_fill_a_pruned_entry(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_environ: None,
+) -> None:
+    """A valueless client-config entry no longer outranks $CODEX_HOME/.env, which is imported with setdefault."""
+    env_file = _write_client_env(tmp_path)
+    monkeypatch.setenv(ENV_CODEX_HOME, str(tmp_path))
+    monkeypatch.setenv(_CLIENT_TEST_VAR, "${GEMINI_MODEL:-}")
+
+    assert prune_valueless_env() == (_CLIENT_TEST_VAR,)
+    assert load_codex_env() == env_file
+    assert os.environ[_CLIENT_TEST_VAR] == "from-dotenv"
+
+
+def test_prune_valueless_env_leaves_a_missing_key_reported_as_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_environ: None,
+) -> None:
+    """With every key slot unexpanded the server reports the usual missing-key error, not an auth failure later."""
+    for name in (ENV_PREFIX + ENV_GOOGLE_API_KEY, ENV_PREFIX + ENV_GEMINI_API_KEY):
+        monkeypatch.setenv(name, "${GOOGLE_API_KEY:-}")
+
+    prune_valueless_env()
+    with pytest.raises(ValueError, match="is required when using Google AI Studio"):
+        load_config_from_env(os.environ.get)

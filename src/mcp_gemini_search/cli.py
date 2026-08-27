@@ -27,7 +27,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from mcp_gemini_search import _logging
-from mcp_gemini_search.config import load_codex_env, load_config_from_env
+from mcp_gemini_search.config import load_codex_env, load_config_from_env, prune_valueless_env
 from mcp_gemini_search.research import DeepResearchService
 from mcp_gemini_search.search import GoogleSearchService
 from mcp_gemini_search.server import create_server
@@ -81,6 +81,9 @@ def _run(logpath: str) -> None:
     """Configure logging, build the server, and serve until shutdown."""
     handle = _logging.setup_logging(logpath)
     try:
+        pruned = prune_valueless_env()
+        if pruned:
+            _logging.logger.debug("dropped empty or unexpanded environment variables: %s", ", ".join(pruned))
         env_file = load_codex_env()
         if env_file is not None:
             _logging.logger.info("parsed codex dotenv: %s", env_file)

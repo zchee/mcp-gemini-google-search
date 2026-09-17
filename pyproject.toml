@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+requires = ["hatchling>=1.32", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
@@ -22,19 +22,20 @@ name = "mcp-gemini-search"
 dynamic = ["version"]
 description = "MCP server that provides Google Search via Gemini's built-in Grounding with Google Search feature."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 dependencies = [
-    "mcp[cli]==2.0.0b1",
-    "mcp-types==2.0.0b1",
-    "google-genai[aiohttp]>=2.22.0",
+    "anyio>=4.15.1",
+    "google-genai[aiohttp]>=2.24.0",
     "jsonschema>=4.26.0",
+    "mcp-types>=2.2.0",
+    "mcp[cli]>=2.2.0",
+    "mdformat-gfm>=1.0.0",
+    "mdformat>=1.0.0",
     "orjson>=3.12.0",
     "python-dotenv>=1.2.3",
-    "uvloop>=0.22.1; sys_platform != 'win32'",
-    "mdformat>=1.0.0",
-    "mdformat-gfm>=1.0.0",
+    "uvloop>=0.22.1 ; sys_platform != 'win32'",
 ]
 
 [project.urls]
@@ -45,7 +46,12 @@ Repository = "https://github.com/zchee/mcp-gemini-search"
 mcp-gemini-search = "mcp_gemini_search.cli:main"
 
 [dependency-groups]
-dev = ["pytest", "anyio", "pytest-benchmark", "ruff", "ty"]
+dev = [
+    "pytest",
+    "pytest-benchmark",
+    "ruff",
+    "ty",
+]
 
 [tool.uv]
 prerelease = "allow"
@@ -108,6 +114,9 @@ ignore = [
 [tool.ruff.format]
 preview = true
 
+[tool.ty.environment]
+python-version = "3.14"
+
 [tool.ty.terminal]
 error-on-warning = true
 
@@ -117,4 +126,9 @@ markers = [
     "benchmark: performance benchmarks; deselected by default, run with -m benchmark",
     "live: tests that call the real Gemini API; deselected by default, run with -m live",
     "slow: multi-minute tests excluded from -m live alone; require RUN_SLOW=1",
+]
+filterwarnings = [
+    # google-genai builds a Union alias out of a private typing name on import.
+    'ignore::DeprecationWarning:google\.genai\.types',
+    "ignore:'_UnionGenericAlias' is deprecated.*:DeprecationWarning:google.genai.types",
 ]

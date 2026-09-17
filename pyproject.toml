@@ -53,9 +53,6 @@ dev = [
     "ty",
 ]
 
-[tool.uv]
-prerelease = "allow"
-
 [tool.ruff]
 line-length = 120
 preview = true

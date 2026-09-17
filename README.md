@@ -33,19 +33,19 @@ This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](ht
 Install the server as a [`uv`](https://docs.astral.sh/uv/) tool from this repository:
 
 ```bash
-uv tool install --prerelease=allow git+https://github.com/zchee/mcp-gemini-search
+uv tool install git+https://github.com/zchee/mcp-gemini-search
 ```
 
 Or run it without installing using `uvx`:
 
 ```bash
-uvx --prerelease=allow --from git+https://github.com/zchee/mcp-gemini-search mcp-gemini-search
+uvx --from git+https://github.com/zchee/mcp-gemini-search mcp-gemini-search
 ```
 
 Alternatively, install with `pip`:
 
 ```bash
-pip install --pre git+https://github.com/zchee/mcp-gemini-search
+pip install git+https://github.com/zchee/mcp-gemini-search
 ```
 
 ### Bundled plugin MCP configuration
@@ -58,7 +58,6 @@ Both bundled plugins register the server from the same `.mcp.json` at the reposi
     "mcp-gemini-search": {
       "command": "uvx",
       "args": [
-        "--prerelease=allow",
         "--from",
         "git+https://github.com/zchee/mcp-gemini-search",
         "mcp-gemini-search"

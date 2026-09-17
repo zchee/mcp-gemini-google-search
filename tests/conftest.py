@@ -21,10 +21,15 @@ import pytest
 from mcp_gemini_search.config import CONFIG_ENV_VARS, ENV_CODEX_HOME, ENV_PREFIX
 
 
-@pytest.fixture
-def anyio_backend() -> str:
-    """Pin anyio-backed async tests to the asyncio event loop."""
-    return "asyncio"
+@pytest.fixture(
+    params=[
+        pytest.param(("asyncio", {"use_uvloop": True}), id="asyncio+uvloop"),
+        pytest.param(("asyncio", {"use_uvloop": False}), id="asyncio"),
+    ]
+)
+def anyio_backend(request: pytest.FixtureRequest) -> tuple[str, dict[str, bool]]:
+    """Pin anyio-backed async tests to asyncio, once with uvloop and once without."""
+    return request.param
 
 
 @pytest.fixture(autouse=True)

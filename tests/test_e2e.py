@@ -18,14 +18,12 @@ from __future__ import annotations
 
 import asyncio
 import os
+from pathlib import Path
 import signal
 import sys
-from pathlib import Path
 from typing import Any
 
 import anyio
-import orjson
-import pytest
 from mcp.client.session import ClientSession
 from mcp.client.stdio import (
     StdioServerParameters,
@@ -33,9 +31,12 @@ from mcp.client.stdio import (
     stdio_client,
 )
 from mcp_types import TextContent
+import orjson
+import pytest
 
 from mcp_gemini_search import __version__
 from tests._helpers import load_golden
+
 
 pytestmark = pytest.mark.anyio
 
@@ -91,6 +92,11 @@ _API_KEY_ENV_VARS = (
 )
 
 
+_LIVE_API_SKIP_REASON = (
+    "RUN_LIVE_API and a real API key (GEMINI_API_KEY/GOOGLE_API_KEY or an MCP_GEMINI_-prefixed variant) are required"
+)
+
+
 def _live_api_key() -> str:
     """Select the live-test API key with the server's namespace-first precedence."""
     for name in _API_KEY_ENV_VARS:
@@ -126,10 +132,9 @@ async def test_stdio_handshake_reports_golden_server_info_and_tool() -> None:
         env={**_default_env(), "GEMINI_API_KEY": "dummy"},
     )
     with anyio.fail_after(_SUBPROCESS_TIMEOUT):
-        async with stdio_client(params) as (read, write):
-            async with ClientSession(read, write) as session:
-                init = await session.initialize()
-                tools = await session.list_tools()
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            init = await session.initialize()
+            tools = await session.list_tools()
 
     assert init.server_info.name == golden["name"]
     assert init.server_info.version == __version__
@@ -158,10 +163,9 @@ async def test_logpath_records_startup_line_and_jsonrpc_frames(
         env={**_default_env(), "GEMINI_API_KEY": "dummy"},
     )
     with anyio.fail_after(_SUBPROCESS_TIMEOUT):
-        async with stdio_client(params) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                await session.list_tools()
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            await session.initialize()
+            await session.list_tools()
 
     content = logfile.read_text(encoding="utf-8")
     assert _STARTUP_LINE in content
@@ -173,7 +177,7 @@ async def test_logpath_records_startup_line_and_jsonrpc_frames(
 
 
 async def test_stdin_eof_exits_zero_without_pollution() -> None:
-    """stdin EOF exits 0 with protocol-only stdout and a silent stderr."""
+    """Stdin EOF exits 0 with protocol-only stdout and a silent stderr."""
     proc = await _spawn([], _dummy_key_env())
     assert proc.stdin is not None
     assert proc.stdout is not None
@@ -247,9 +251,8 @@ async def test_stdio_handshake_with_dotenv_only_key(
         env={**_clean_env(), "CODEX_HOME": str(home)},
     )
     with anyio.fail_after(_SUBPROCESS_TIMEOUT):
-        async with stdio_client(params) as (read, write):
-            async with ClientSession(read, write) as session:
-                init = await session.initialize()
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            init = await session.initialize()
 
     assert init.server_info.version == __version__
 
@@ -257,7 +260,7 @@ async def test_stdio_handshake_with_dotenv_only_key(
 @pytest.mark.live
 @pytest.mark.skipif(
     not os.environ.get("RUN_LIVE_API") or not _live_api_key(),
-    reason="RUN_LIVE_API and a real API key (GEMINI_API_KEY/GOOGLE_API_KEY or an MCP_GEMINI_-prefixed variant) are required",
+    reason=_LIVE_API_SKIP_REASON,
 )
 async def test_live_google_search_returns_grounded_text() -> None:
     """A real API call returns grounded text with a source list."""
@@ -267,10 +270,9 @@ async def test_live_google_search_returns_grounded_text() -> None:
         env={**_default_env(), "GEMINI_API_KEY": api_key},
     )
     with anyio.fail_after(120):
-        async with stdio_client(params) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                result = await session.call_tool("google_search", {"query": "latest Go release version"})
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.call_tool("google_search", {"query": "latest Go release version"})
 
     assert not result.is_error
     block = result.content[0]
@@ -283,7 +285,7 @@ async def test_live_google_search_returns_grounded_text() -> None:
 @pytest.mark.live
 @pytest.mark.skipif(
     not os.environ.get("RUN_LIVE_API") or not _live_api_key(),
-    reason="RUN_LIVE_API and a real API key (GEMINI_API_KEY/GOOGLE_API_KEY or an MCP_GEMINI_-prefixed variant) are required",
+    reason=_LIVE_API_SKIP_REASON,
 )
 async def test_live_deep_research_start_and_poll_then_cancel() -> None:
     """Start a deep research run, poll once, then cancel the billed background job."""
@@ -296,25 +298,24 @@ async def test_live_deep_research_start_and_poll_then_cancel() -> None:
     )
     interaction_id = ""
     with anyio.fail_after(120):
-        async with stdio_client(params) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                start = await session.call_tool(
-                    "deep_research",
-                    {"query": "one-sentence summary of the Go programming language"},
-                )
-                assert not start.is_error
-                assert start.structured_content is not None
-                interaction_id = start.structured_content["interaction_id"]
-                assert interaction_id
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            await session.initialize()
+            start = await session.call_tool(
+                "deep_research",
+                {"query": "one-sentence summary of the Go programming language"},
+            )
+            assert not start.is_error
+            assert start.structured_content is not None
+            interaction_id = start.structured_content["interaction_id"]
+            assert interaction_id
 
-                poll = await session.call_tool(
-                    "deep_research_result",
-                    {"interaction_id": interaction_id, "wait_seconds": 5},
-                )
-                assert not poll.is_error
-                assert poll.structured_content is not None
-                assert poll.structured_content["status"] in {"in_progress", "completed"}
+            poll = await session.call_tool(
+                "deep_research_result",
+                {"interaction_id": interaction_id, "wait_seconds": 5},
+            )
+            assert not poll.is_error
+            assert poll.structured_content is not None
+            assert poll.structured_content["status"] in {"in_progress", "completed"}
 
     # Cancel via the SDK so the billed background run does not linger.
     client = genai.Client(api_key=api_key)
@@ -329,7 +330,7 @@ async def test_live_deep_research_start_and_poll_then_cancel() -> None:
 )
 @pytest.mark.skipif(
     not os.environ.get("RUN_LIVE_API") or not _live_api_key(),
-    reason="RUN_LIVE_API and a real API key (GEMINI_API_KEY/GOOGLE_API_KEY or an MCP_GEMINI_-prefixed variant) are required",
+    reason=_LIVE_API_SKIP_REASON,
 )
 async def test_live_deep_research_full_run_to_completion() -> None:
     """Gated by RUN_SLOW=1 in addition to the live marker so `-m live` alone never runs this multi-minute billed job."""
@@ -339,32 +340,31 @@ async def test_live_deep_research_full_run_to_completion() -> None:
         env={**_default_env(), "GEMINI_API_KEY": api_key},
     )
     with anyio.fail_after(15 * 60):
-        async with stdio_client(params) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                start = await session.call_tool(
-                    "deep_research",
-                    {"query": "one-paragraph overview of the MCP protocol"},
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            await session.initialize()
+            start = await session.call_tool(
+                "deep_research",
+                {"query": "one-paragraph overview of the MCP protocol"},
+            )
+            assert not start.is_error
+            assert start.structured_content is not None
+            interaction_id = start.structured_content["interaction_id"]
+
+            status = "in_progress"
+            report_text = ""
+            sources: list[Any] | None = None
+            while status not in {"completed", "failed", "cancelled"}:
+                poll = await session.call_tool(
+                    "deep_research_result",
+                    {"interaction_id": interaction_id, "wait_seconds": 60},
                 )
-                assert not start.is_error
-                assert start.structured_content is not None
-                interaction_id = start.structured_content["interaction_id"]
+                assert not poll.is_error
+                assert poll.structured_content is not None
+                status = poll.structured_content["status"]
+                report_text = poll.structured_content.get("text", "")
+                sources = poll.structured_content.get("sources")
 
-                status = "in_progress"
-                report_text = ""
-                sources: list[Any] | None = None
-                while status not in {"completed", "failed", "cancelled"}:
-                    poll = await session.call_tool(
-                        "deep_research_result",
-                        {"interaction_id": interaction_id, "wait_seconds": 60},
-                    )
-                    assert not poll.is_error
-                    assert poll.structured_content is not None
-                    status = poll.structured_content["status"]
-                    report_text = poll.structured_content.get("text", "")
-                    sources = poll.structured_content.get("sources")
-
-                assert status == "completed"
-                assert report_text.strip()
-                assert sources
-                assert len(sources) >= 1
+            assert status == "completed"
+            assert report_text.strip()
+            assert sources
+            assert len(sources) >= 1

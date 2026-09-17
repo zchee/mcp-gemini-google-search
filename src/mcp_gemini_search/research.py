@@ -31,6 +31,7 @@ from mcp_gemini_search.search import (
     _step_error_message,
 )
 
+
 _TERMINAL_STATUSES = frozenset({"completed", "failed", "cancelled"})
 _MAX_WAIT_SECONDS = 60
 DEEP_RESEARCH_AGENT = "deep-research-preview-04-2026"

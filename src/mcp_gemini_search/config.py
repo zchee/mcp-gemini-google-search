@@ -16,18 +16,23 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import os
+from pathlib import Path
 import re
 import stat
-from collections.abc import Callable
-from dataclasses import dataclass
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dotenv import dotenv_values
 from google import genai
 
 from mcp_gemini_search._logging import logger
 from mcp_gemini_search.research import DEEP_RESEARCH_AGENT as DEFAULT_DEEP_RESEARCH_AGENT
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 ENV_PREFIX = "MCP_GEMINI_"
 
@@ -258,7 +263,7 @@ def _import_client_env(label: str, env_file: Path) -> Path | None:
         return None
     try:
         fd = os.open(env_file, os.O_RDONLY | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_CLOEXEC", 0))
-    except (FileNotFoundError, NotADirectoryError):
+    except FileNotFoundError, NotADirectoryError:
         return None
     except OSError as e:
         logger.warning("skip %s dotenv %s: %s", label, env_file, e)  # %s, not %r: reprs can embed file bytes

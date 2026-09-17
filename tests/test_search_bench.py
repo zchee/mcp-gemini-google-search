@@ -18,18 +18,23 @@ Ported from ``search_bench_test.go``. Marked ``benchmark`` so they are
 deselected by default and run serially with ``-m benchmark``.
 """
 
-from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 import anyio
-import pytest
 from google.genai import interactions
-from pytest_benchmark.fixture import BenchmarkFixture
+import pytest
 
 from mcp_gemini_search.search import (
     GoogleSearchService,
     format_interaction,
 )
 from tests._helpers import url_citation as _cite
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from pytest_benchmark.fixture import BenchmarkFixture
 
 
 def _benchmark_interaction() -> interactions.Interaction:

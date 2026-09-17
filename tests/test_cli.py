@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -38,9 +38,13 @@ from mcp_gemini_search.research import DeepResearchService
 from mcp_gemini_search.search import GoogleSearchService
 
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
+
 @pytest.mark.skipif(sys.platform == "win32", reason="uvloop is a non-Windows dependency")
 def test_backend_options_enable_uvloop() -> None:
-    """uvloop is installed on POSIX platforms and selected for anyio."""
+    """Uvloop is installed on POSIX platforms and selected for anyio."""
     assert cli._backend_options() == {"use_uvloop": True}
 
 
@@ -52,9 +56,9 @@ def test_backend_options_enable_uvloop() -> None:
     ],
     ids=["default agent", "max agent"],
 )
+@pytest.mark.usefixtures("isolated_environ")
 def test_run_wires_deep_research_service_agent(
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
     agent: str,
     want_agent: str,
 ) -> None:
@@ -103,10 +107,10 @@ def test_run_wires_deep_research_service_agent(
     assert "backend_options" in kwargs
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_run_loads_client_dotenv_key(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A GEMINI_API_KEY stored only in the Codex dotenv is enough to start the server."""
@@ -119,8 +123,8 @@ def test_run_loads_client_dotenv_key(
         ENV_GOOGLE_GENAI_USE_VERTEXAI,
     ):
         monkeypatch.delenv(key, raising=False)
-    monkeypatch.setattr(cli, "create_server", lambda service, research: object())
-    monkeypatch.setattr(cli.anyio, "run", lambda *args, **kwargs: None)
+    monkeypatch.setattr(cli, "create_server", lambda _service, _research: object())
+    monkeypatch.setattr(cli.anyio, "run", lambda *_args, **_kwargs: None)
 
     with caplog.at_level(logging.INFO, logger="mcp_gemini_search"):
         cli._run("")
@@ -129,10 +133,10 @@ def test_run_loads_client_dotenv_key(
     assert "dotenv-key" not in caplog.text
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_run_ignores_unexpanded_client_config_placeholder(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A key entry the launching client never expanded must not outrank the Codex dotenv key.
@@ -153,8 +157,8 @@ def test_run_ignores_unexpanded_client_config_placeholder(
         ENV_GOOGLE_GENAI_USE_VERTEXAI,
     ):
         monkeypatch.delenv(key, raising=False)
-    monkeypatch.setattr(cli, "create_server", lambda service, research: object())
-    monkeypatch.setattr(cli.anyio, "run", lambda *args, **kwargs: None)
+    monkeypatch.setattr(cli, "create_server", lambda _service, _research: object())
+    monkeypatch.setattr(cli.anyio, "run", lambda *_args, **_kwargs: None)
 
     with caplog.at_level(logging.INFO, logger="mcp_gemini_search"):
         cli._run("")

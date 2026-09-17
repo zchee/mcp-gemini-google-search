@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import enum
 import functools
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import jsonschema
 from mcp.server import Server, ServerRequestContext
@@ -39,7 +39,11 @@ from mcp_gemini_search.research import (
     DEEP_RESEARCH_MAX_AGENT,
     DeepResearchService,
 )
-from mcp_gemini_search.search import GoogleSearchService
+
+
+if TYPE_CHECKING:
+    from mcp_gemini_search.search import GoogleSearchService
+
 
 SERVER_NAME = "mcp-gemini-search"
 WEBSITE_URL = "https://github.com/zchee/mcp-gemini-search"
@@ -291,9 +295,9 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
 }
 
 
-async def _list_tools(  # noqa: RUF029
-    ctx: ServerRequestContext,
-    params: PaginatedRequestParams | None,
+async def _list_tools(  # ruff: ignore[unused-async]
+    _ctx: ServerRequestContext,
+    _params: PaginatedRequestParams | None,
 ) -> ListToolsResult:
     """Return the three tool declarations with their pinned schemas."""
     return ListToolsResult(
@@ -321,7 +325,7 @@ async def _list_tools(  # noqa: RUF029
 
 
 async def _call_tool(
-    ctx: ServerRequestContext,
+    _ctx: ServerRequestContext,
     params: CallToolRequestParams,
     *,
     service: GoogleSearchService,
@@ -398,7 +402,7 @@ async def _call_tool(
                 # Unreachable while _TOOL_INPUT_SCHEMAS and this match list the
                 # same tools; a tool added to one but not the other fails loudly
                 # here instead of as a NameError on `content` below.
-                raise AssertionError(f"unhandled tool: {name}")
+                raise AssertionError(f"unhandled tool: {name}")  # ruff: ignore[raise-within-try]
 
         return CallToolResult(
             content=content,

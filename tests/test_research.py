@@ -20,9 +20,9 @@ import logging
 from typing import Any
 
 import anyio
+from google.genai import interactions
 import jsonschema
 import pytest
-from google.genai import interactions
 
 from mcp_gemini_search import research as research_mod
 from mcp_gemini_search.research import (
@@ -32,11 +32,13 @@ from mcp_gemini_search.research import (
     format_research_report,
 )
 from mcp_gemini_search.search import GoogleSearchSource
-from tests._helpers import golden_tool
-from tests._helpers import interaction as _interaction
-from tests._helpers import model_output as _output
-from tests._helpers import text_block as _text
-from tests._helpers import url_citation as _cite
+from tests._helpers import (
+    golden_tool,
+    interaction as _interaction,
+    model_output as _output,
+    text_block as _text,
+    url_citation as _cite,
+)
 
 
 class StubInteractions:
@@ -50,6 +52,7 @@ class StubInteractions:
         get_responses: list[interactions.Interaction] | None = None,
         get_error: Exception | None = None,
     ) -> None:
+        """Script the create/get outcomes and zero the call counters."""
         self.create_response = create_response
         self.create_error = create_error
         self.get_responses = list(get_responses or [])
@@ -195,7 +198,7 @@ async def test_start_agent_override(
 async def test_start_empty_query(query: str) -> None:
     """Empty or whitespace-only research queries raise ValueError."""
     svc = DeepResearchService("agent", StubInteractions())
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:  # ruff: ignore[pytest-raises-too-broad]
         await svc.start(query)
     assert str(excinfo.value) == "research query cannot be empty"
 
@@ -246,7 +249,7 @@ async def test_start_missing_interaction_id() -> None:
 async def test_result_empty_interaction_id(interaction_id: str) -> None:
     """Empty or whitespace-only interaction ids raise ValueError."""
     svc = DeepResearchService("agent", StubInteractions())
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:  # ruff: ignore[pytest-raises-too-broad]
         await svc.result(interaction_id)
     assert str(excinfo.value) == "interaction id cannot be empty"
 
@@ -258,7 +261,7 @@ async def test_result_wait_seconds_zero_single_poll_no_sleep(
     """wait_seconds=0 performs exactly one get and never sleeps."""
     sleep_calls: list[float] = []
 
-    async def tracking_sleep(seconds: float) -> None:  # noqa: RUF029
+    async def tracking_sleep(seconds: float) -> None:  # ruff: ignore[unused-async]
         sleep_calls.append(seconds)
         raise AssertionError(f"anyio.sleep should not be called, got {seconds}")
 
@@ -283,7 +286,7 @@ async def test_result_wait_seconds_negative_clamps_like_zero(
     """wait_seconds below 0 clamps to 0: one get, no sleep, status-only return."""
     sleep_calls: list[float] = []
 
-    async def tracking_sleep(seconds: float) -> None:  # noqa: RUF029
+    async def tracking_sleep(seconds: float) -> None:  # ruff: ignore[unused-async]
         sleep_calls.append(seconds)
 
     monkeypatch.setattr(research_mod.anyio, "sleep", tracking_sleep)
@@ -352,7 +355,7 @@ async def test_result_long_poll_until_completed(monkeypatch: pytest.MonkeyPatch)
     def current_time() -> float:
         return clock["now"]
 
-    async def fake_sleep(seconds: float) -> None:  # noqa: RUF029
+    async def fake_sleep(seconds: float) -> None:  # ruff: ignore[unused-async]
         sleep_calls.append(seconds)
         clock["now"] += seconds
 

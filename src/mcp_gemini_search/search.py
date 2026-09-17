@@ -16,13 +16,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from google.genai import interactions
 
 from mcp_gemini_search import _markdown
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,12 +123,12 @@ class GoogleSearchService:
 
     @property
     def model(self) -> str:
-        """Return the Gemini model identifier used for generation."""
+        """Gemini model identifier used for generation."""
         return self._model
 
     @property
     def tools(self) -> tuple[dict[str, str], ...]:
-        """Return the server-default tool declarations, before per-request overrides."""
+        """Server-default tool declarations, before per-request overrides."""
         return tuple(_build_tools(self._url_context, self._code_execution))
 
     async def search(
@@ -286,7 +289,7 @@ def _cite_block(
     sources: list[GoogleSearchSource],
     number_by_key: dict[str, int],
 ) -> str:
-    """Insert escaped ``\\[n\\]`` markers into one text block, collecting sources.
+    r"""Insert escaped ``\[n\]`` markers into one text block, collecting sources.
 
     New sources append to ``sources`` in annotation encounter order;
     ``number_by_key`` deduplicates them across blocks, keyed by URL (or by
@@ -363,7 +366,7 @@ def _render_source_list(sources: Sequence[GoogleSearchSource]) -> str:
 
 
 def _citation_text(numbers: list[int]) -> str:
-    """Render citation numbers as adjacent escaped ``\\[n\\]`` markers.
+    r"""Render citation numbers as adjacent escaped ``\[n\]`` markers.
 
     Markers are plain text, never links: the URI lives once in the
     ``## Sources`` list, which keeps token cost low for LLM consumers. The

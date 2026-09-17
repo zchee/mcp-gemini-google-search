@@ -22,6 +22,7 @@ import mdformat
 
 from mcp_gemini_search._logging import logger
 
+
 _MDFORMAT_OPTIONS: dict[str, bool] = {"number": True}
 _MDFORMAT_EXTENSIONS = frozenset({"gfm"})
 

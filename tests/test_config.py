@@ -16,7 +16,7 @@
 
 import logging
 import os
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -42,6 +42,10 @@ from mcp_gemini_search.config import (
     load_config_from_env,
     prune_valueless_env,
 )
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.mark.parametrize(
@@ -327,7 +331,7 @@ def test_load_config_from_env_errors(env: dict[str, str], want_err: str) -> None
     def getenv(key: str) -> str:
         return env.get(key, "")
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError) as exc_info:  # ruff: ignore[pytest-raises-too-broad]
         load_config_from_env(getenv)
     assert str(exc_info.value) == want_err
 
@@ -344,7 +348,7 @@ def test_load_config_from_env_tolerates_none_lookups() -> None:
 def test_server_config_new_client_rejects_mutually_exclusive_settings() -> None:
     """google-genai rejects an API key combined with a Vertex project."""
     cfg = ServerConfig(model=DEFAULT_MODEL, api_key="test-key", project="project-1")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="project/location"):
         cfg.new_client()
 
 
@@ -409,10 +413,10 @@ def _write_client_env(directory: Path, value: str = "from-dotenv") -> Path:
     return env_file
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_loads_from_home_env(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """$CODEX_HOME/.env entries are parsed into os.environ."""
     env_file = _write_client_env(tmp_path)
@@ -425,11 +429,11 @@ def test_load_codex_env_loads_from_home_env(
 
 
 @pytest.mark.parametrize("home_value", [None, "", "   "], ids=["unset", "empty", "blank"])
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_defaults_to_home_dir(
     home_value: str | None,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """An unset, empty, or blank CODEX_HOME falls back to ~/.codex."""
     env_file = _write_client_env(tmp_path / ".codex")
@@ -444,10 +448,10 @@ def test_load_codex_env_defaults_to_home_dir(
     assert os.environ[_CLIENT_TEST_VAR] == "from-dotenv"
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_prefixed_home_overrides_base(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """The MCP_GEMINI_-prefixed home variable wins over the client's own home variable."""
     env_file = _write_client_env(tmp_path / "prefixed")
@@ -460,10 +464,10 @@ def test_load_codex_env_prefixed_home_overrides_base(
     assert os.environ[_CLIENT_TEST_VAR] == "from-dotenv"
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_expands_tilde_codex_home(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """A leading ~ in CODEX_HOME resolves against the home directory."""
     env_file = _write_client_env(tmp_path / "codex-home")
@@ -475,10 +479,10 @@ def test_load_codex_env_expands_tilde_codex_home(
     assert os.environ[_CLIENT_TEST_VAR] == "from-dotenv"
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_never_overrides_process_environment(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """Variables already exported win over Codex dotenv values."""
     env_file = _write_client_env(tmp_path)
@@ -489,10 +493,10 @@ def test_load_codex_env_never_overrides_process_environment(
     assert os.environ[_CLIENT_TEST_VAR] == "from-process"
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_missing_file_is_ignored(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """A CODEX_HOME without a .env file is a silent no-op."""
     monkeypatch.setenv(ENV_CODEX_HOME, str(tmp_path))
@@ -509,11 +513,11 @@ def test_load_codex_env_missing_file_is_ignored(
         pytest.param("fifo", marks=pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="mkfifo is POSIX-only")),
     ],
 )
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_non_regular_file_warns_and_skips(
     kind: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A directory or FIFO at the dotenv path warns and is skipped without blocking startup."""
@@ -533,10 +537,10 @@ def test_load_codex_env_non_regular_file_warns_and_skips(
 
 
 @pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="root bypasses file permission bits")
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_unreadable_file_warns_and_skips(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """An unreadable dotenv file logs a warning and leaves the environment untouched."""
@@ -552,10 +556,10 @@ def test_load_codex_env_unreadable_file_warns_and_skips(
     assert _CLIENT_TEST_VAR not in os.environ
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_undecodable_file_warns_and_skips(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A non-UTF-8 dotenv file logs a warning instead of crashing startup."""
@@ -568,10 +572,10 @@ def test_load_codex_env_undecodable_file_warns_and_skips(
     assert "skip codex dotenv" in caplog.text
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_feeds_load_config_from_env(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """A GEMINI_API_KEY stored in the Codex dotenv satisfies config resolution."""
     (tmp_path / ".env").write_text(f'{ENV_GEMINI_API_KEY}="codex-key"\n', encoding="utf-8")
@@ -592,10 +596,10 @@ def test_load_codex_env_feeds_load_config_from_env(
     assert load_config_from_env(os.getenv) == ServerConfig(model=DEFAULT_MODEL, api_key="codex-key")
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_blank_prefixed_home_falls_back(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """A whitespace-only prefixed home falls back to the client's own home variable."""
     env_file = _write_client_env(tmp_path / "base")
@@ -607,10 +611,10 @@ def test_load_codex_env_blank_prefixed_home_falls_back(
     assert os.environ[_CLIENT_TEST_VAR] == "from-dotenv"
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_client_env_ignores_unrecognized_entries(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """A dotenv holding only unrecognized names imports nothing and reports no load."""
     (tmp_path / ".env").write_text(
@@ -625,10 +629,10 @@ def test_load_client_env_ignores_unrecognized_entries(
     assert "HTTPS_PROXY" not in os.environ
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_codex_env_ignores_loader_control_entries(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """Loader-control names inside the dotenv never reach os.environ."""
     attacker_dir = tmp_path / "attacker"
@@ -650,10 +654,10 @@ def test_load_codex_env_ignores_loader_control_entries(
     assert ENV_GEMINI_API_KEY not in os.environ
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_client_env_does_not_interpolate(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """``${VAR}`` references stay literal so a value can never be assembled from another source."""
     (tmp_path / ".env").write_text(f'{ENV_GEMINI_API_KEY}="${{{ENV_GOOGLE_API_KEY}}}"\n', encoding="utf-8")
@@ -665,10 +669,10 @@ def test_load_client_env_does_not_interpolate(
     assert os.environ[ENV_GEMINI_API_KEY] == f"${{{ENV_GOOGLE_API_KEY}}}"
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_load_client_env_honors_python_dotenv_disabled(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """An exported PYTHON_DOTENV_DISABLED=1 skips client dotenv loading entirely."""
     _write_client_env(tmp_path)
@@ -688,9 +692,8 @@ def _polluted_host_environ(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PYTHON_DOTENV_DISABLED", "1")
 
 
+@pytest.mark.usefixtures("_polluted_host_environ", "isolated_environ")
 def test_isolated_environ_scrubs_host_configuration(
-    _polluted_host_environ: None,
-    isolated_environ: None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Host-exported MCP_GEMINI_* settings and PYTHON_DOTENV_DISABLED never leak into isolated tests."""
@@ -712,10 +715,10 @@ _UNEXPANDED_VALUES = (
 
 
 @pytest.mark.parametrize("value", _UNEXPANDED_VALUES)
+@pytest.mark.usefixtures("isolated_environ")
 def test_prune_valueless_env_drops_unexpanded_placeholders(
     value: str,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """A client config entry the launching client never expanded is treated as unset, not as a key."""
     monkeypatch.setenv(ENV_PREFIX + ENV_GOOGLE_API_KEY, value)
@@ -727,10 +730,10 @@ def test_prune_valueless_env_drops_unexpanded_placeholders(
 
 
 @pytest.mark.parametrize("value", ["", "   "], ids=["empty", "blank"])
+@pytest.mark.usefixtures("isolated_environ")
 def test_prune_valueless_env_drops_empty_values(
     value: str,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """An entry a client expanded to nothing is removed rather than left to shadow later sources."""
     monkeypatch.setenv(ENV_PREFIX + ENV_GOOGLE_API_KEY, value)
@@ -744,10 +747,10 @@ def test_prune_valueless_env_drops_empty_values(
     "value",
     ["real-key", "AIza-${literal}-key", "${unterminated", "$GOOGLE_API_KEY", "/dev/null"],
 )
+@pytest.mark.usefixtures("isolated_environ")
 def test_prune_valueless_env_keeps_usable_values(
     value: str,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """Only a value that is nothing but one placeholder is dropped; anything else is a real setting."""
     monkeypatch.setenv(ENV_GOOGLE_API_KEY, value)
@@ -756,9 +759,9 @@ def test_prune_valueless_env_keeps_usable_values(
     assert os.environ[ENV_GOOGLE_API_KEY] == value
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_prune_valueless_env_drops_unexpanded_codex_home(
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """The dotenv home is pruned too, so a placeholder never becomes a literal directory name."""
     monkeypatch.setenv(ENV_CODEX_HOME, "${CODEX_HOME:-}")
@@ -767,10 +770,10 @@ def test_prune_valueless_env_drops_unexpanded_codex_home(
     assert ENV_CODEX_HOME not in os.environ
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_prune_valueless_env_lets_codex_dotenv_fill_a_pruned_entry(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """A valueless client-config entry no longer outranks $CODEX_HOME/.env, which is imported with setdefault."""
     env_file = _write_client_env(tmp_path)
@@ -782,9 +785,9 @@ def test_prune_valueless_env_lets_codex_dotenv_fill_a_pruned_entry(
     assert os.environ[_CLIENT_TEST_VAR] == "from-dotenv"
 
 
+@pytest.mark.usefixtures("isolated_environ")
 def test_prune_valueless_env_leaves_a_missing_key_reported_as_missing(
     monkeypatch: pytest.MonkeyPatch,
-    isolated_environ: None,
 ) -> None:
     """With every key slot unexpanded the server reports the usual missing-key error, not an auth failure later."""
     for name in (ENV_PREFIX + ENV_GOOGLE_API_KEY, ENV_PREFIX + ENV_GEMINI_API_KEY):

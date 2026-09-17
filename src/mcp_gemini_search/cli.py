@@ -21,9 +21,9 @@ import importlib.util
 import os
 import signal
 import sys
+from typing import TYPE_CHECKING
 
 import anyio
-from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from mcp_gemini_search import _logging
@@ -31,6 +31,11 @@ from mcp_gemini_search.config import load_codex_env, load_config_from_env, prune
 from mcp_gemini_search.research import DeepResearchService
 from mcp_gemini_search.search import GoogleSearchService
 from mcp_gemini_search.server import create_server
+
+
+if TYPE_CHECKING:
+    from mcp.server import Server
+
 
 _STARTUP_MESSAGE = "gemini google search mcp server running on stdio"
 
@@ -73,7 +78,7 @@ def main() -> None:
     try:
         _run(args.logpath)
     except Exception as e:
-        print(e, file=sys.stderr)
+        sys.stderr.write(f"{e}\n")
         sys.exit(1)
 
 
@@ -159,6 +164,6 @@ async def _watch_signals() -> None:
         async for _ in signals:
             message = "serve gemini google search mcp stdio server: context canceled"
             _logging.logger.error(message)
-            print(message, file=sys.stderr)
+            sys.stderr.write(f"{message}\n")
             sys.stderr.flush()
             os._exit(1)

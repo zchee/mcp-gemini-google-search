@@ -57,62 +57,75 @@ dev = [
 prerelease = "allow"
 
 [tool.ruff]
-preview = true
 line-length = 120
-target-version = "py313"
+preview = true
+target-version = "py314"
 
 [tool.ruff.lint]
-fixable = ["ALL"]
-preview = true
-
 select = [
-    "B", # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "D101", # pydocstyle/undocumented-public-class
-    "D102", # pydocstyle/undocumented-public-method
-    "D103", # pydocstyle/undocumented-public-function
     "E", # pycodestyle (Error)
+    "W", # pycodestyle (Warning)
     "F", # Pyflakes
     "I", # isort
-    "INP001", # flake8-no-pep420/implicit-namespace-package
-    "N", # pep8-naming
-    "SIM", # flake8-simplify
-    "TD002", # flake8-todos/missing-todo-author
-    "TD006", # flake8-todos/invalid-todo-capitalization
-    "TID", # flake8-tidy-imports
     "UP", # pyupgrade
-    "W", # pycodestyle (Warning)
-    "ANN", # flake8-annotations
+    "B", # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "SIM", # flake8-simplify
     "RUF", # Ruff-specific rules
+    "D", # pydocstyle
     "PIE", # flake8-pie
+    "PERF", # Perflint
+    "PT", # flake8-pytest-style
+    "T20", # flake8-print
+    "TID", # flake8-tidy-imports
+    "PTH", # flake8-use-pathlib
+    "TRY", # tryceratops
+    "PYI", # flake8-pyi
+    "ANN", # flake8-annotations
+    "ARG", # flake8-unused-arguments
+    "ASYNC", # flake8-async
+    "SLF", # flake8-self
+    "RET", # flake8-return
+    "FURB", # refurb
+    "G", # flake8-logging-format
     "LOG", # flake8-logging
+    "N", # pep8-naming
+    "ERA", # eradicate
+    "TC", # flake8-type-checking
+    "TD", # flake8-todos
+    "unnecessary-paren-on-raise-exception", # flake8-raise/RSE102
+    "SLOT", # flake8-slots
+    "blanket-type-ignore", # pygrep-hooks/PGH003
+    "blanket-noqa", # pygrep-hooks/PGH004
+    "implicit-namespace-package", # flake8-no-pep420/INP001
 ]
 ignore = [
-    "RUF001", # ambiguous-unicode-character-string
-    "RUF003", # ambiguous-unicode-character-comment
-    "ANN401", # any-type
-
-    # ruff formatter recommends to disable those. see https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
-    "COM812", # Trailing comma missing
-    "COM819", # Trailing comma prohibited
-    "D206", # Docstring should be indented with spaces, not tabs
-    "D300", # Use triple double quotes """
-    "E111", # Indentation is not a multiple of
-    "E114", # Indentation is not a multiple of {indent_size} (comment)
-    "E117", # Over-indented (comment)
-    "E203", # Whitespace before '{symbol}'
-    "E501", # Line too long ({width} > {limit})
-    "ISC001", # Implicitly concatenated string literals on one line
-    "ISC002", # Implicitly concatenated string literals over multiple lines
-    "Q000", # Single quotes found but double quotes preferred
-    "Q001", # Single quote multiline found but double quotes preferred
-    "Q002", # Single quote docstring found but double quotes preferred
-    "Q003", # Change outer quotes to avoid escaping inner quotes
-    "W191", # Indentation contains tabs
+    # The SDK's create/get return Interaction | AsyncStream[...], and the
+    # Protocols have to stay structurally compatible with that, so Any is the
+    # honest annotation rather than a missing one.
+    "any-type", # flake8-annotations/ANN401
+    # Error strings are part of the contract here: they mirror the Go server's
+    # messages verbatim and the tests assert them. One exception class per
+    # message would move that contract away from the raise site for no gain.
+    "raise-vanilla-args", # tryceratops/TRY003
 ]
 
-[tool.ruff.format]
-preview = true
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    # Stub methods mirror the real API signatures whether or not a body reads
+    # every parameter, and keyword-only names cannot be underscore-prefixed.
+    "unused-method-argument", # flake8-unused-arguments/ARG002
+    # The suite exercises module-level and class-level privates on purpose.
+    "private-member-access", # flake8-self/SLF001
+]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+lines-after-imports = 2
+combine-as-imports = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ty.environment]
 python-version = "3.14"

@@ -16,13 +16,11 @@
 
 from __future__ import annotations
 
-import logging
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any
+import logging
+from typing import TYPE_CHECKING, Any
 
 import anyio
-import pytest
 from google import genai
 from mcp.client import Client
 from mcp.client.session import ClientSession
@@ -36,6 +34,7 @@ from mcp_types import (
     InitializeResult,
     TextContent,
 )
+import pytest
 
 from mcp_gemini_search import __version__
 from mcp_gemini_search.config import DEFAULT_MODEL
@@ -53,6 +52,11 @@ from mcp_gemini_search.search import (
 )
 from mcp_gemini_search.server import create_server
 from tests._helpers import load_golden
+
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
 
 pytestmark = pytest.mark.anyio
 
@@ -194,7 +198,7 @@ async def _raw_session(
 
 
 async def test_initialize_negotiates_golden_protocol_and_server_info() -> None:
-    """initialize echoes the requested protocol version and the golden serverInfo."""
+    """Initialize echoes the requested protocol version and the golden serverInfo."""
     golden = load_golden("initialize.json")["result"]
     async with _raw_session(_StubService(_GROUNDED_OUTPUT)) as (_session_obj, init):
         assert init.protocol_version == REQUESTED_PROTOCOL_VERSION

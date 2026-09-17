@@ -28,17 +28,22 @@ Parity notes:
 
 from __future__ import annotations
 
-import logging
-import os
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import TextIO
+import logging
+import os
+from typing import TYPE_CHECKING, TextIO
 
 import anyio
-import orjson
-from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 from mcp.shared.message import SessionMessage
+import orjson
+
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
+
 
 _LOGGER_NAME = "mcp_gemini_search"
 

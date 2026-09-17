@@ -19,8 +19,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import orjson
 from google.genai import interactions
+import orjson
+
 
 GOLDEN_DIR = Path(__file__).parent / "golden"
 

@@ -17,9 +17,13 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from mcp_gemini_search import _logging
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_setup_logging_overwrites_in_place_without_truncation(tmp_path: Path) -> None:

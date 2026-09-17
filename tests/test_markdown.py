@@ -99,7 +99,7 @@ def test_format_document_falls_back_on_any_mdformat_failure(
 ) -> None:
     """Any mdformat failure logs a warning and falls back to the raw text."""
 
-    def boom(*args: object, **kwargs: object) -> str:
+    def boom(*_args: object, **_kwargs: object) -> str:
         raise ValueError("plugin exploded")
 
     monkeypatch.setattr(mdformat, "text", boom)

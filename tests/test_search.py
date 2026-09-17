@@ -14,11 +14,11 @@
 
 """Tests for the Google Search grounding service."""
 
-from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
+from google.genai import interactions
 import jsonschema
 import pytest
-from google.genai import interactions
 
 from mcp_gemini_search.search import (
     GoogleSearchOutput,
@@ -28,11 +28,17 @@ from mcp_gemini_search.search import (
     _citation_text,
     format_interaction,
 )
-from tests._helpers import golden_tool
-from tests._helpers import interaction as _interaction
-from tests._helpers import model_output as _output
-from tests._helpers import text_block as _text
-from tests._helpers import url_citation as _cite
+from tests._helpers import (
+    golden_tool,
+    interaction as _interaction,
+    model_output as _output,
+    text_block as _text,
+    url_citation as _cite,
+)
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
 
 
 class StubInteractions:
@@ -46,6 +52,7 @@ class StubInteractions:
         interaction: interactions.Interaction | None = None,
         error: Exception | None = None,
     ) -> None:
+        """Script either the canned interaction or the error create raises."""
         self.interaction = interaction
         self.error = error
         self.got_model: str | None = None
@@ -218,7 +225,7 @@ async def test_search_not_configured() -> None:
 async def test_search_empty_query() -> None:
     """A whitespace-only query raises ValueError."""
     svc = GoogleSearchService("gemini-3.5-flash", StubInteractions())
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:  # ruff: ignore[pytest-raises-too-broad]
         await svc.search("   ")
     assert str(excinfo.value) == "search query cannot be empty"
 

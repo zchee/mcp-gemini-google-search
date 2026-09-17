@@ -709,6 +709,7 @@ _UNEXPANDED_VALUES = (
     "${GOOGLE_API_KEY}",
     "${GOOGLE_API_KEY:-}",
     "${GOOGLE_API_KEY:-fallback}",
+    "${user_config.GOOGLE_API_KEY}",
     "${env:GOOGLE_API_KEY}",
     "  ${GOOGLE_API_KEY:-}  ",
 )

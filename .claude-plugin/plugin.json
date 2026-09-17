@@ -1,4 +1,5 @@
 {
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "mcp-gemini-search",
   "version": "0.0.1",
   "description": "Search the web and run citation-rich Deep Research with Gemini through MCP.",
@@ -20,5 +21,19 @@
     "./skills/gemini-deep-research-result/",
     "./skills/gemini-google-search/"
   ],
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.mcp.json",
+  "userConfig": {
+    "GOOGLE_API_KEY": {
+      "type": "string",
+      "title": "Google API key",
+      "description": "Google AI Studio API key; outranks the Gemini key when both are set. Leave empty to use GOOGLE_API_KEY from the shell that launched the client.",
+      "sensitive": true
+    },
+    "GEMINI_API_KEY": {
+      "type": "string",
+      "title": "Gemini API key",
+      "description": "Google AI Studio API key, used when no Google API key is set. Leave empty to use GEMINI_API_KEY from the shell that launched the client.",
+      "sensitive": true
+    }
+  }
 }

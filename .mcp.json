@@ -8,9 +8,13 @@
         "mcp-gemini-search"
       ],
       "env": {
-        "MCP_GEMINI_GOOGLE_API_KEY": "${GOOGLE_API_KEY:-}",
-        "MCP_GEMINI_GEMINI_API_KEY": "${GEMINI_API_KEY:-}"
+        "MCP_GEMINI_GOOGLE_API_KEY": "${user_config.GOOGLE_API_KEY}",
+        "MCP_GEMINI_GEMINI_API_KEY": "${user_config.GEMINI_API_KEY}"
       },
+      "env_vars": [
+        "GOOGLE_API_KEY",
+        "GEMINI_API_KEY"
+      ],
       "startup_timeout_sec": 60
     }
   }

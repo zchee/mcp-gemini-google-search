@@ -74,11 +74,11 @@ Or load it for a single session without installing:
 claude --plugin-dir .
 ```
 
-The plugin starts the server with `uvx` from this repository, so `uv` must be on `PATH`. Claude Code asks for the two API keys when the plugin is enabled and keeps a filled value in the OS keychain; leaving both empty falls back to the variables from [Configuration](#configuration) exported in the shell that launches Claude Code.
+The plugin starts the server with `uvx` from the PyPI release, so `uv` must be on `PATH`. Claude Code asks for the two API keys when the plugin is enabled and keeps a filled value in the OS keychain; leaving both empty falls back to the variables from [Configuration](#configuration) exported in the shell that launches Claude Code.
 
 `${user_config.KEY}` resolves to the value stored for that field of the plugin configuration, declared under `userConfig` in `.claude-plugin/plugin.json`; Claude Code also substitutes `${VAR}` and `${VAR:-default}` for ordinary environment variables, and passes the VS Code spelling `${env:GOOGLE_API_KEY}` through as literal text. A field left empty leaves the reference unexpanded, and the server discards it rather than reading it as a key, so the inherited `GOOGLE_API_KEY` or `GEMINI_API_KEY` takes over. Export those two unprefixed names rather than their `MCP_GEMINI_` variants: an `env` entry replaces the inherited variable of the same name, so a shell-exported `MCP_GEMINI_GOOGLE_API_KEY` is overwritten by whatever the `user_config` reference resolves to.
 
-On a cold `uv` cache the first launch clones and builds the package, which can exceed Claude Code's default MCP startup timeout (Claude Code ignores the Codex-only `startup_timeout_sec` field). If the server fails to start once, launch again — the build is cached — or raise the timeout with `MCP_TIMEOUT=60000 claude`.
+On a cold `uv` cache the first launch downloads the package and its dependencies from PyPI, which on a slow connection can exceed Claude Code's default MCP startup timeout (Claude Code ignores the Codex-only `startup_timeout_sec` field). If the server fails to start once, launch again — the environment is cached — or raise the timeout with `MCP_TIMEOUT=60000 claude`.
 
 ### Bundled plugin MCP configuration
 

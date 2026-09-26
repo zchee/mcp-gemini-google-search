@@ -57,6 +57,29 @@ To run the unreleased `main` branch instead, point `uvx` at the repository:
 uvx --from git+https://github.com/zchee/mcp-gemini-google-search mcp-gemini-google-search
 ```
 
+### Bundled Claude Code plugin
+
+This repository is also a Claude Code plugin (`.claude-plugin/plugin.json` at the root). It registers the MCP server and three skills — `gemini-google-search`, `gemini-deep-research`, and `gemini-deep-research-result` — that teach the client when to search versus research, how to relay answers without dropping citations, and how to poll a Deep Research run without starting a duplicate billed run.
+
+Install it from this repository's marketplace inside Claude Code:
+
+```
+/plugin marketplace add zchee/mcp-gemini-google-search
+/plugin install mcp-gemini-google-search@mcp-gemini-google-search
+```
+
+Or load it for a single session without installing:
+
+```bash
+claude --plugin-dir .
+```
+
+The plugin starts the server with `uvx` from this repository, so `uv` must be on `PATH`. Claude Code asks for the two API keys when the plugin is enabled and keeps a filled value in the OS keychain; leaving both empty falls back to the variables from [Configuration](#configuration) exported in the shell that launches Claude Code.
+
+`${user_config.KEY}` resolves to the value stored for that field of the plugin configuration, declared under `userConfig` in `.claude-plugin/plugin.json`; Claude Code also substitutes `${VAR}` and `${VAR:-default}` for ordinary environment variables, and passes the VS Code spelling `${env:GOOGLE_API_KEY}` through as literal text. A field left empty leaves the reference unexpanded, and the server discards it rather than reading it as a key, so the inherited `GOOGLE_API_KEY` or `GEMINI_API_KEY` takes over. Export those two unprefixed names rather than their `MCP_GEMINI_` variants: an `env` entry replaces the inherited variable of the same name, so a shell-exported `MCP_GEMINI_GOOGLE_API_KEY` is overwritten by whatever the `user_config` reference resolves to.
+
+On a cold `uv` cache the first launch clones and builds the package, which can exceed Claude Code's default MCP startup timeout (Claude Code ignores the Codex-only `startup_timeout_sec` field). If the server fails to start once, launch again — the build is cached — or raise the timeout with `MCP_TIMEOUT=60000 claude`.
+
 ### Bundled plugin MCP configuration
 
 Both bundled plugins register the server from the same `.mcp.json` at the repository root:
@@ -86,29 +109,6 @@ Both bundled plugins register the server from the same `.mcp.json` at the reposi
 The `env` block fills the server's own `MCP_GEMINI_` namespace from the plugin configuration Claude Code collects when the plugin is enabled, so the key lives in the OS keychain instead of a shell profile. `env_vars` states the same intent in the spelling Codex understands: Codex withholds the host environment from the servers it spawns unless a variable is named there, and it forwards these two under their own names. `startup_timeout_sec` is a Codex-only field that Claude Code ignores.
 
 Codex CLI substitutes neither `${VAR}` nor `${user_config.VAR}` in an MCP `env` table — it passes both entries through verbatim — so the server discards them as unexpanded (see [Environment reference](#environment-reference)) and takes the key from `env_vars`, which means exporting `GOOGLE_API_KEY` or `GEMINI_API_KEY` in the shell that launches Codex is enough. `$CODEX_HOME/.env` (default `~/.codex/.env`) remains the way to keep the key out of the shell altogether; the process environment wins when a name is set in both — see [Codex dotenv file](#codex-dotenv-file).
-
-### Bundled Claude Code plugin
-
-This repository is also a Claude Code plugin (`.claude-plugin/plugin.json` at the root). It registers the MCP server and three skills — `gemini-google-search`, `gemini-deep-research`, and `gemini-deep-research-result` — that teach the client when to search versus research, how to relay answers without dropping citations, and how to poll a Deep Research run without starting a duplicate billed run.
-
-Install it from this repository's marketplace inside Claude Code:
-
-```
-/plugin marketplace add zchee/mcp-gemini-google-search
-/plugin install mcp-gemini-google-search@mcp-gemini-google-search
-```
-
-Or load it for a single session without installing:
-
-```bash
-claude --plugin-dir .
-```
-
-The plugin starts the server with `uvx` from this repository, so `uv` must be on `PATH`. Claude Code asks for the two API keys when the plugin is enabled and keeps a filled value in the OS keychain; leaving both empty falls back to the variables from [Configuration](#configuration) exported in the shell that launches Claude Code.
-
-`${user_config.KEY}` resolves to the value stored for that field of the plugin configuration, declared under `userConfig` in `.claude-plugin/plugin.json`; Claude Code also substitutes `${VAR}` and `${VAR:-default}` for ordinary environment variables, and passes the VS Code spelling `${env:GOOGLE_API_KEY}` through as literal text. A field left empty leaves the reference unexpanded, and the server discards it rather than reading it as a key, so the inherited `GOOGLE_API_KEY` or `GEMINI_API_KEY` takes over. Export those two unprefixed names rather than their `MCP_GEMINI_` variants: an `env` entry replaces the inherited variable of the same name, so a shell-exported `MCP_GEMINI_GOOGLE_API_KEY` is overwritten by whatever the `user_config` reference resolves to.
-
-On a cold `uv` cache the first launch clones and builds the package, which can exceed Claude Code's default MCP startup timeout (Claude Code ignores the Codex-only `startup_timeout_sec` field). If the server fails to start once, launch again — the build is cached — or raise the timeout with `MCP_TIMEOUT=60000 claude`.
 
 ## Configuration
 

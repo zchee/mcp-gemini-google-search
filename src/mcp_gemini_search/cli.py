@@ -43,7 +43,7 @@ _STARTUP_MESSAGE = "gemini google search mcp server running on stdio"
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     """Parse command-line arguments, accepting both -logpath and --logpath."""
     parser = argparse.ArgumentParser(
-        prog="mcp-gemini-search",
+        prog="mcp-gemini-google-search",
         description=("MCP server providing Google Search via Gemini's Grounding with Google Search."),
     )
     parser.add_argument(

@@ -18,7 +18,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 
 try:
-    __version__ = version("mcp-gemini-search")
+    __version__ = version("mcp-gemini-google-search")
 except PackageNotFoundError:
     # Running from a source tree that is not installed; mirror the
     # uv-dynamic-versioning fallback-version.

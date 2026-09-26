@@ -7,9 +7,9 @@
     },
     "protocolVersion": "2025-06-18",
     "serverInfo": {
-      "name": "mcp-gemini-search",
+      "name": "mcp-gemini-google-search",
       "version": "0.0.1",
-      "websiteUrl": "https://github.com/zchee/mcp-gemini-search"
+      "websiteUrl": "https://github.com/zchee/mcp-gemini-google-search"
     }
   }
 }

@@ -27,7 +27,7 @@ only-include = [
 ]
 
 [project]
-name = "mcp-gemini-search"
+name = "mcp-gemini-google-search"
 dynamic = ["version"]
 description = "MCP server that provides Google Search via Gemini's built-in Grounding with Google Search feature."
 readme = "README.md"
@@ -48,11 +48,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/zchee/mcp-gemini-search"
-Repository = "https://github.com/zchee/mcp-gemini-search"
+Homepage = "https://github.com/zchee/mcp-gemini-google-search"
+Repository = "https://github.com/zchee/mcp-gemini-google-search"
 
 [project.scripts]
-mcp-gemini-search = "mcp_gemini_search.cli:main"
+mcp-gemini-google-search = "mcp_gemini_search.cli:main"
 
 [dependency-groups]
 dev = [

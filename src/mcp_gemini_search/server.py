@@ -45,8 +45,8 @@ if TYPE_CHECKING:
     from mcp_gemini_search.search import GoogleSearchService
 
 
-SERVER_NAME = "mcp-gemini-search"
-WEBSITE_URL = "https://github.com/zchee/mcp-gemini-search"
+SERVER_NAME = "mcp-gemini-google-search"
+WEBSITE_URL = "https://github.com/zchee/mcp-gemini-google-search"
 
 
 class ToolName(enum.StrEnum):

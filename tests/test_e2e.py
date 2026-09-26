@@ -41,8 +41,8 @@ from tests._helpers import load_golden
 pytestmark = pytest.mark.anyio
 
 # The console script installed by `uv sync`; this is exactly what
-# `uv run mcp-gemini-search` execs.
-BINARY = Path(sys.executable).parent / "mcp-gemini-search"
+# `uv run mcp-gemini-google-search` execs.
+BINARY = Path(sys.executable).parent / "mcp-gemini-google-search"
 
 _MISSING_API_KEY_ERROR = (
     '"GOOGLE_API_KEY" or "GEMINI_API_KEY" (or an "MCP_GEMINI_"-prefixed variant) '

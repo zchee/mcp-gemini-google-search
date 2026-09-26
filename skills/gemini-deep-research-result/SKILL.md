@@ -1,9 +1,9 @@
 ---
 name: gemini-deep-research-result
-description: Poll and retrieve Gemini Deep Research runs with the deep_research_result tool of the mcp-gemini-search MCP server. Use this skill whenever a deep_research run has been started and you hold an interaction_id — to check progress, wait for completion, fetch the finished Markdown report with its citations, or re-fetch a report from an earlier session. Also use it when the user asks "is the research done yet?", "get the report", or pastes an interaction_id.
+description: Poll and retrieve Gemini Deep Research runs with the deep_research_result tool of the mcp-gemini-google-search MCP server. Use this skill whenever a deep_research run has been started and you hold an interaction_id — to check progress, wait for completion, fetch the finished Markdown report with its citations, or re-fetch a report from an earlier session. Also use it when the user asks "is the research done yet?", "get the report", or pastes an interaction_id.
 ---
 
-# deep_research_result (mcp-gemini-search)
+# deep_research_result (mcp-gemini-google-search)
 
 `deep_research_result` fetches the current state of a Deep Research run by
 `interaction_id`. It is the **only** correct way to check on or retrieve a

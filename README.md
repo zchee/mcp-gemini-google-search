@@ -1,4 +1,4 @@
-# mcp-gemini-search
+# mcp-gemini-google-search
 
 An MCP stdio server for Google-grounded Gemini answers and asynchronous Gemini Deep Research reports.
 
@@ -33,19 +33,19 @@ This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](ht
 Install the server as a [`uv`](https://docs.astral.sh/uv/) tool from this repository:
 
 ```bash
-uv tool install git+https://github.com/zchee/mcp-gemini-search
+uv tool install git+https://github.com/zchee/mcp-gemini-google-search
 ```
 
 Or run it without installing using `uvx`:
 
 ```bash
-uvx --from git+https://github.com/zchee/mcp-gemini-search mcp-gemini-search
+uvx --from git+https://github.com/zchee/mcp-gemini-google-search mcp-gemini-google-search
 ```
 
 Alternatively, install with `pip`:
 
 ```bash
-pip install git+https://github.com/zchee/mcp-gemini-search
+pip install git+https://github.com/zchee/mcp-gemini-google-search
 ```
 
 ### Bundled plugin MCP configuration
@@ -55,12 +55,12 @@ Both bundled plugins register the server from the same `.mcp.json` at the reposi
 ```json
 {
   "mcpServers": {
-    "mcp-gemini-search": {
+    "mcp-gemini-google-search": {
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/zchee/mcp-gemini-search",
-        "mcp-gemini-search"
+        "git+https://github.com/zchee/mcp-gemini-google-search",
+        "mcp-gemini-google-search"
       ],
       "env": {
         "MCP_GEMINI_GOOGLE_API_KEY": "${user_config.GOOGLE_API_KEY}",
@@ -87,8 +87,8 @@ This repository is also a Claude Code plugin (`.claude-plugin/plugin.json` at th
 Install it from this repository's marketplace inside Claude Code:
 
 ```
-/plugin marketplace add zchee/mcp-gemini-search
-/plugin install mcp-gemini-search@mcp-gemini-search
+/plugin marketplace add zchee/mcp-gemini-google-search
+/plugin install mcp-gemini-google-search@mcp-gemini-google-search
 ```
 
 Or load it for a single session without installing:
@@ -177,13 +177,13 @@ export GEMINI_SERVICE_TIER="flex"  # or standard, priority
 Run the server over stdio:
 
 ```bash
-mcp-gemini-search
+mcp-gemini-google-search
 ```
 
 Optional file logging. Logs are written only to the given file (stdout is reserved for the MCP protocol):
 
 ```bash
-mcp-gemini-search --logpath /tmp/mcp-gemini-search.log
+mcp-gemini-google-search --logpath /tmp/mcp-gemini-google-search.log
 ```
 
 Both `-logpath` and `--logpath` are accepted. Without this option the server does not emit routine logs; fatal startup errors still go to stderr.

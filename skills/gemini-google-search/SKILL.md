@@ -1,14 +1,14 @@
 ---
 name: gemini-google-search
-description: Drive the google_search tool of the mcp-gemini-search MCP server — a Google-Search-grounded Gemini call that returns a Markdown answer with inline [n] citations and a numbered Sources list. Use this skill whenever the user asks to search the web, look up current events, verify a fact against live sources, check the latest version/release/pricing/news of anything, or when any claim needs verifiable citations — even if they never say "search" or "google_search". Also use it to decide when a request should instead go to the deep_research tool.
+description: Drive the google_search tool of the mcp-gemini-google-search MCP server — a Google-Search-grounded Gemini call that returns a Markdown answer with inline [n] citations and a numbered Sources list. Use this skill whenever the user asks to search the web, look up current events, verify a fact against live sources, check the latest version/release/pricing/news of anything, or when any claim needs verifiable citations — even if they never say "search" or "google_search". Also use it to decide when a request should instead go to the deep_research tool.
 ---
 
-# google_search (mcp-gemini-search)
+# google_search (mcp-gemini-google-search)
 
 `google_search` runs one Google-Search-grounded Gemini interaction and returns
 a Markdown answer with inline `[n]` citation markers and a numbered
 `## Sources` list. Depending on how the server is registered, the tool may
-appear as `mcp__mcp-gemini-search__google_search` or under another server
+appear as `mcp__mcp-gemini-google-search__google_search` or under another server
 alias — match on the trailing `google_search`.
 
 The tool's own schema documents its parameters (`query`, `url_context`,

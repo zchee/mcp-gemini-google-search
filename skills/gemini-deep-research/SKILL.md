@@ -1,9 +1,9 @@
 ---
 name: gemini-deep-research
-description: Start an asynchronous Gemini Deep Research run with the deep_research tool of the mcp-gemini-search MCP server — an autonomous agent that searches, reads sources, and writes a long citation-rich Markdown report over several minutes. Use this skill whenever the user wants a comprehensive report, competitive analysis, technology comparison, literature survey, market/landscape overview, or any multi-source investigation — even if they just say "research X thoroughly" or "write me a report on Y". Also read it before ever calling deep_research, because a careless call starts a duplicate billed multi-minute run.
+description: Start an asynchronous Gemini Deep Research run with the deep_research tool of the mcp-gemini-google-search MCP server — an autonomous agent that searches, reads sources, and writes a long citation-rich Markdown report over several minutes. Use this skill whenever the user wants a comprehensive report, competitive analysis, technology comparison, literature survey, market/landscape overview, or any multi-source investigation — even if they just say "research X thoroughly" or "write me a report on Y". Also read it before ever calling deep_research, because a careless call starts a duplicate billed multi-minute run.
 ---
 
-# deep_research (mcp-gemini-search)
+# deep_research (mcp-gemini-google-search)
 
 `deep_research` starts a background Deep Research agent run and returns
 immediately with `{interaction_id, status}` — it never waits for the report.

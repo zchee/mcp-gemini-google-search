@@ -31,6 +31,28 @@ jobs:
           enable-cache: false
           python-version: "3.14"
 
+      - name: Check that the plugin manifests match the tag
+        # The plugins install from this repository at the tagged commit, so
+        # every version they declare must equal the release. Pre-release tags
+        # (rc, a, b) publish to PyPI only and are not held to this.
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+        run: |
+          version="${TAG_VERSION#v}"
+          case "${version}" in
+            *[!0-9.]*)
+              echo "pre-release tag ${TAG_VERSION}: plugin manifests are not checked"
+              exit 0
+              ;;
+          esac
+          declared="$(
+            jq -r '.version' .claude-plugin/plugin.json .codex-plugin/plugin.json
+            jq -r '.version, .plugins[].version' .claude-plugin/marketplace.json
+          )"
+          echo "tag=${version}"
+          echo "${declared}"
+          test "$(printf '%s\n' "${declared}" | sort -u)" = "${version}"
+
       - name: Build
         run: uv build --no-sources
 

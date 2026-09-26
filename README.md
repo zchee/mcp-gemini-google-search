@@ -335,3 +335,17 @@ RUN_LIVE_API=1 GEMINI_API_KEY="your-api-key" uv run pytest -m live
 # Full multi-minute Deep Research run (explicit billed run)
 RUN_SLOW=1 RUN_LIVE_API=1 GEMINI_API_KEY="your-api-key" uv run pytest -m "live and slow"
 ```
+
+### Releasing
+
+The Python package and the bundled plugins share one version, and the release workflow refuses to publish when they disagree. To cut `vX.Y.Z`:
+
+1. Set `X.Y.Z` in every plugin manifest: the `version` fields of `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, and `.claude-plugin/marketplace.json` (both the marketplace and its plugin entry). `uv run pytest tests/test_manifests.py` checks that they agree.
+2. Commit, then push a signed tag:
+
+   ```bash
+   git tag --sign -m 'vX.Y.Z' vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+The `Release` workflow builds the distributions, checks that the built version and the plugin manifests match the tag, smoke-tests the wheel and the sdist, and publishes to PyPI through Trusted Publishing with PEP 740 attestations. Pre-release tags such as `v0.2.0rc1` publish to PyPI without touching the plugin manifests.

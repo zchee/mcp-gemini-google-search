@@ -1,7 +1,7 @@
 {
   "$schema": "https://www.schemastore.org/codex-plugin-manifest.json",
   "name": "mcp-gemini-google-search",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Search the web and run citation-rich Deep Research with Gemini through MCP.",
   "author": {
     "name": "Koichi Shiraishi",

@@ -11,7 +11,7 @@
     {
       "name": "mcp-gemini-google-search",
       "description": "Search the web and run citation-rich Deep Research with Gemini through MCP.",
-      "version": "0.0.1",
+      "version": "0.1.0",
       "source": "./",
       "category": "productivity",
       "homepage": "https://github.com/zchee/mcp-gemini-google-search",
@@ -24,5 +24,5 @@
       ]
     }
   ],
-  "version": "0.0.1"
+  "version": "0.1.0"
 }

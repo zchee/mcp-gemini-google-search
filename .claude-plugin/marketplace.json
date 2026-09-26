@@ -1,6 +1,6 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
-  "name": "mcp-gemini-search",
+  "name": "mcp-gemini-google-search",
   "description": "Google-grounded Gemini answers and asynchronous Deep Research reports over MCP, with skills that keep citations intact.",
   "owner": {
     "name": "zchee",
@@ -9,12 +9,12 @@
   },
   "plugins": [
     {
-      "name": "mcp-gemini-search",
+      "name": "mcp-gemini-google-search",
       "description": "Search the web and run citation-rich Deep Research with Gemini through MCP.",
       "version": "0.0.1",
       "source": "./",
       "category": "productivity",
-      "homepage": "https://github.com/zchee/mcp-gemini-search",
+      "homepage": "https://github.com/zchee/mcp-gemini-google-search",
       "tags": [
         "mcp",
         "gemini",

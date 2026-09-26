@@ -1,11 +1,11 @@
 {
   "mcpServers": {
-    "mcp-gemini-search": {
+    "mcp-gemini-google-search": {
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/zchee/mcp-gemini-search",
-        "mcp-gemini-search"
+        "git+https://github.com/zchee/mcp-gemini-google-search",
+        "mcp-gemini-google-search"
       ],
       "env": {
         "MCP_GEMINI_GOOGLE_API_KEY": "${user_config.GOOGLE_API_KEY}",

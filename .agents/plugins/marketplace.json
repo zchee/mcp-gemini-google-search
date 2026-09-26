@@ -1,11 +1,11 @@
 {
-  "name": "mcp-gemini-search",
+  "name": "mcp-gemini-google-search",
   "interface": {
     "displayName": "Gemini Search plugin"
   },
   "plugins": [
     {
-      "name": "mcp-gemini-search",
+      "name": "mcp-gemini-google-search",
       "source": {
         "source": "local",
         "path": "./"

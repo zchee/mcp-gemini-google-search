@@ -1,14 +1,14 @@
 {
   "$schema": "https://www.schemastore.org/codex-plugin-manifest.json",
-  "name": "mcp-gemini-search",
+  "name": "mcp-gemini-google-search",
   "version": "0.0.1",
   "description": "Search the web and run citation-rich Deep Research with Gemini through MCP.",
   "author": {
     "name": "Koichi Shiraishi",
     "url": "https://github.com/zchee"
   },
-  "homepage": "https://github.com/zchee/mcp-gemini-search",
-  "repository": "https://github.com/zchee/mcp-gemini-search",
+  "homepage": "https://github.com/zchee/mcp-gemini-google-search",
+  "repository": "https://github.com/zchee/mcp-gemini-google-search",
   "license": "Apache-2.0",
   "keywords": [
     "mcp",
@@ -29,7 +29,7 @@
       "Interactive",
       "Read"
     ],
-    "websiteURL": "https://github.com/zchee/mcp-gemini-search",
+    "websiteURL": "https://github.com/zchee/mcp-gemini-google-search",
     "defaultPrompt": [
       "Search the web with Gemini and cite the sources.",
       "Research this topic deeply and return a cited report.",

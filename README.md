@@ -2,7 +2,7 @@
 
 An MCP stdio server for Google-grounded Gemini answers and asynchronous Gemini Deep Research reports.
 
-This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](https://github.com/yukukotani/mcp-gemini-google-search) and extends it with Deep Research. The upstream project publishes the `mcp-gemini-google-search` npm package; this Python port shares the name but installs from this Git repository rather than from a package index. The Python implementation uses the official [`google-genai`](https://googleapis.github.io/python-genai/) SDK for Gemini API and Vertex AI access and the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) low-level server.
+This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](https://github.com/yukukotani/mcp-gemini-google-search) and extends it with Deep Research. The upstream project publishes the `mcp-gemini-google-search` npm package; this Python port is published on PyPI under the same name. The Python implementation uses the official [`google-genai`](https://googleapis.github.io/python-genai/) SDK for Gemini API and Vertex AI access and the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) low-level server.
 
 ## Features
 
@@ -30,22 +30,28 @@ This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](ht
 
 ## Installation
 
-Install the server as a [`uv`](https://docs.astral.sh/uv/) tool from this repository:
+Install the server as a [`uv`](https://docs.astral.sh/uv/) tool from [PyPI](https://pypi.org/project/mcp-gemini-google-search/):
 
 ```bash
-uv tool install git+https://github.com/zchee/mcp-gemini-google-search
+uv tool install mcp-gemini-google-search
 ```
 
 Or run it without installing using `uvx`:
 
 ```bash
-uvx --from git+https://github.com/zchee/mcp-gemini-google-search mcp-gemini-google-search
+uvx mcp-gemini-google-search
 ```
 
 Alternatively, install with `pip`:
 
 ```bash
-pip install git+https://github.com/zchee/mcp-gemini-google-search
+pip install mcp-gemini-google-search
+```
+
+To run the unreleased `main` branch instead, point `uvx` at the repository:
+
+```bash
+uvx --from git+https://github.com/zchee/mcp-gemini-google-search mcp-gemini-google-search
 ```
 
 ### Bundled plugin MCP configuration

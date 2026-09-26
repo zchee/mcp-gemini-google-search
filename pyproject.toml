@@ -1,12 +1,15 @@
 [build-system]
-requires = ["hatchling>=1.32", "uv-dynamic-versioning"]
+requires = ["hatchling>=1.32", "uv-dynamic-versioning>=0.14"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
 
-[tool.hatch.metadata]
-allow-direct-references = true
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"
+bump = true
+fallback-version = "0.0.0"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_gemini_search"]
@@ -22,12 +25,6 @@ only-include = [
     "LICENSE",
     "pyproject.toml",
 ]
-
-[tool.uv-dynamic-versioning]
-vcs = "git"
-style = "pep440"
-bump = true
-fallback-version = "0.0.0"
 
 [project]
 name = "mcp-gemini-search"

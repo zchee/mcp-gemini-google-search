@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+[ab][0-9]+"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # uv-dynamic-versioning derives the version from `git describe`,
+          # which needs the tag and the history behind it.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install uv
+        # setup-uv v8+ ships immutable releases without floating tags, so the
+        # exact latest release is pinned; dependabot keeps it current.
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+          python-version: "3.14"
+
+      - name: Build
+        run: uv build --no-sources
+
+      - name: Check that the built version matches the tag
+        # A PyPI release cannot be replaced, so refuse to publish anything
+        # whose version does not match the tag that triggered the run.
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+        run: |
+          built="$(unzip -p dist/*.whl '*/METADATA' | sed -n 's/^Version: //p')"
+          echo "tag=${TAG_VERSION#v} built=${built}"
+          test "${built}" = "${TAG_VERSION#v}"
+
+      - name: Smoke test (wheel)
+        run: uv run --isolated --no-project --with dist/*.whl -- mcp-gemini-google-search --help
+
+      - name: Smoke test (source distribution)
+        run: uv run --isolated --no-project --with dist/*.tar.gz -- mcp-gemini-google-search --help
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs:
+      - build
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/mcp-gemini-google-search/
+    permissions:
+      id-token: write
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Download distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Generate PEP 740 attestations
+        # attest-action publishes no floating major tag (only v0.0.x), so the
+        # exact latest release is pinned; dependabot keeps it current.
+        uses: astral-sh/attest-action@v0.0.6
+
+      - name: Publish to PyPI
+        # Trusted Publishing only: fail instead of falling back to a token.
+        run: uv publish --trusted-publishing always

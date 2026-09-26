@@ -65,7 +65,6 @@ dev = [
 [tool.ruff]
 line-length = 120
 preview = true
-target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -132,9 +131,6 @@ combine-as-imports = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.ty.environment]
-python-version = "3.14"
 
 [tool.ty.terminal]
 error-on-warning = true

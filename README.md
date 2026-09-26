@@ -2,7 +2,7 @@
 
 An MCP stdio server for Google-grounded Gemini answers and asynchronous Gemini Deep Research reports.
 
-This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](https://github.com/yukukotani/mcp-gemini-google-search) and extends it with Deep Research. The Python implementation uses the official [`google-genai`](https://googleapis.github.io/python-genai/) SDK for Gemini API and Vertex AI access and the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) low-level server.
+This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](https://github.com/yukukotani/mcp-gemini-google-search) and extends it with Deep Research. The upstream project publishes the `mcp-gemini-google-search` npm package; this Python port shares the name but installs from this Git repository rather than from a package index. The Python implementation uses the official [`google-genai`](https://googleapis.github.io/python-genai/) SDK for Gemini API and Vertex AI access and the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) low-level server.
 
 ## Features
 
@@ -25,8 +25,8 @@ This repository ports the behavior of [`yukukotani/mcp-gemini-google-search`](ht
 
 ## Requirements
 
-- Python 3.13 or later
-- mcp[cli] 2.0.0b1 (pre-release MCP Python SDK v2)
+- Python 3.14 or later
+- `mcp` 2.2.0 or later (MCP Python SDK v2)
 
 ## Installation
 

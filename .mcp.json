@@ -3,8 +3,6 @@
     "mcp-gemini-google-search": {
       "command": "uvx",
       "args": [
-        "--from",
-        "git+https://github.com/zchee/mcp-gemini-google-search",
         "mcp-gemini-google-search"
       ],
       "env": {

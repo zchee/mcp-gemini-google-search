@@ -58,8 +58,6 @@ Both bundled plugins register the server from the same `.mcp.json` at the reposi
     "mcp-gemini-google-search": {
       "command": "uvx",
       "args": [
-        "--from",
-        "git+https://github.com/zchee/mcp-gemini-google-search",
         "mcp-gemini-google-search"
       ],
       "env": {

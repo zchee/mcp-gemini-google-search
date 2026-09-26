@@ -144,6 +144,5 @@ markers = [
 ]
 filterwarnings = [
     # google-genai builds a Union alias out of a private typing name on import.
-    'ignore::DeprecationWarning:google\.genai\.types',
-    "ignore:'_UnionGenericAlias' is deprecated.*:DeprecationWarning:google.genai.types",
+    "ignore:'_UnionGenericAlias' is deprecated.*:DeprecationWarning:google\\.genai\\.types",
 ]

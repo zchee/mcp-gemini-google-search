@@ -104,7 +104,7 @@ jobs:
       - name: Generate PEP 740 attestations
         # attest-action publishes no floating major tag (only v0.0.x), so the
         # exact latest release is pinned; dependabot keeps it current.
-        uses: astral-sh/attest-action@v0.0.6
+        uses: astral-sh/attest-action@v0.0.7
 
       - name: Publish to PyPI
         # Trusted Publishing only: fail instead of falling back to a token.
